@@ -1,13 +1,33 @@
 {
-  "files": [],
-  "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
-  ],
   "compilerOptions": {
+
+    "target": "ES2020", 
+    "useDefineForClassFields": true, 
+    "module": "ESNext", 
+    
+    "jsx": "react-jsx", 
+    
+    "lib": ["DOM", "DOM.Iterable", "ESNext"], 
+    
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
-    }
-  }
+    },
+    
+    "strict": true,
+    "noUnusedLocals": true, 
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src"], 
+  "references": [
+    { "path": "./tsconfig.node.json" }
+  ]
 }
