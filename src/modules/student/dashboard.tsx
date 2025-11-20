@@ -1,16 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, {JSX, useEffect, useState} from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-/**
- * Student Dashboard
- * - Lista instancias del estudiante
- * - Crear instancia (modal)
- * - Actions: start / stop / restart / delete (POST /instances/:id/action { action })
- * - Link rápido a Query Editor (ruta: /student/query)
- *
- * Ajusta API_BASE con VITE_API_BASE en .env si tu backend tiene otra URL.
- */
+
 
 const API_BASE =
     (import.meta.env && (import.meta.env.VITE_API_BASE as string)) ||
@@ -54,9 +46,9 @@ export default function StudentDashboard(): JSX.Element {
         setLoading(true);
         setError(null);
         try {
-            const res = await axios.get(`${API_BASE}/instances`);
-            // axios returns data at res.data — adapt if backend returns wrapper
-            setInstances(res.data || []);
+            // CORRECCIÓN TS6133: Usamos desestructuración { data }
+            const { data } = await axios.get(`${API_BASE}/instances`);
+            setInstances(data || []);
         } catch (err: any) {
             console.error("fetchInstances error", err);
             setError(err?.message || "Error loading instances");
@@ -101,8 +93,9 @@ export default function StudentDashboard(): JSX.Element {
                 password: form.password || undefined,
             };
 
-            const res = await axios.post(`${API_BASE}/instances`, payload);
-            // assume res.data contains created instance
+            // CORRECCIÓN TS6133: Eliminamos 'const res =' ya que no se usa
+            await axios.post(`${API_BASE}/instances`, payload);
+
             setShowCreate(false);
             setForm({ name: "", engine: "postgres", port: "", username: "", password: "" });
             // refresh instances
@@ -124,6 +117,14 @@ export default function StudentDashboard(): JSX.Element {
                 </div>
 
                 <div className="flex gap-3">
+                    <button
+                        onClick={() => navigate("/student/")}
+                        className="px-4 py-2 bg-gray-600 rounded-md text-white hover:bg-gray-500"
+                    >
+                        Volver
+                    </button>
+                    {/* -------------------------------------------------- */}
+
                     <button
                         onClick={() => navigate("/student/query")}
                         className="px-4 py-2 bg-blue-600 rounded-md text-white hover:bg-blue-500"

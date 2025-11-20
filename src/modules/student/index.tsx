@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState, type FC } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { studentService } from "../../api/studentService";
+import { studentService } from "@/api/studentService";
 
 type Instance = {
     id: string | number;
@@ -12,7 +12,7 @@ type Instance = {
     createdAt?: string;
 };
 
-const StudentIndex: React.FC = () => {
+const StudentIndex: FC = () => {
     const [instances, setInstances] = useState<Instance[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
@@ -27,8 +27,8 @@ const StudentIndex: React.FC = () => {
         setError(null);
         try {
             const res = await studentService.getInstances();
-            // studentService uses axios and returns the axios response, adapt si devuelve data directo
-            const data = (res && (res.data ?? res)) as Instance[];
+
+            const data = (res.data ?? res) as Instance[];
             setInstances(Array.isArray(data) ? data : []);
         } catch (err: any) {
             console.error("fetchInstances", err);
@@ -47,6 +47,15 @@ const StudentIndex: React.FC = () => {
                 </div>
 
                 <div className="flex gap-2">
+                    {/* --- BOTÓN AÑADIDO: PÁGINA PRINCIPAL (HOME) --- */}
+                    <button
+                        onClick={() => navigate("/")}
+                        className="px-4 py-2 bg-gray-600 rounded text-white hover:bg-gray-500"
+                    >
+                        Página Principal
+                    </button>
+                    {/* ------------------------------------------------ */}
+
                     <button
                         onClick={() => navigate("/student/dashboard")}
                         className="px-4 py-2 bg-sky-600 rounded text-white"
