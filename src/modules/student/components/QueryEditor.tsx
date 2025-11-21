@@ -1,7 +1,9 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import Editor from "@monaco-editor/react";
-import { studentService } from "../../../api/studentService";
+import { studentService } from "@/api/studentService";
+import ExportButtons from "./ExportButtons";
+import InstanceInfoPanel from "../../student/components/InstanceInfoPanel";
 
 type QueryResult = {
     columns?: string[];
@@ -21,27 +23,19 @@ const QueryEditor: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(false);
     const [result, setResult] = useState<QueryResult | null>(null);
     const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        // si viniste con query guardada en URL (opcional), podríamos cargarla aquí
-    }, []);
+    
+    const [detectedEntity, setDetectedEntity] = useState<string | null>(null);
 
     const handleRun = useCallback(async () => {
         setLoading(true);
         setError(null);
         setResult(null);
+        setDetectedEntity(null);
 
         try {
-            if (!instanceId) {
-                // si no hay instancia explícita, asumimos que backend sabrá a cuál aplicar o devolverá error
-                // aún así, el service espera instanceId; si tu backend acepta sin id, adapta studentService.
-            }
-
-            // studentService.executeQuery(instanceId, code)
             const res = await studentService.executeQuery(instanceId ?? "default", code);
             const data = (res && (res.data ?? res)) as any;
 
-            // data expected shape: { columns: [], rows: [[...],[...]] } or { error: '...' }
             if (data?.error) {
                 setError(data.error);
                 setResult(null);
@@ -52,6 +46,10 @@ const QueryEditor: React.FC = () => {
                     executionTimeMs: data.executionTimeMs ?? undefined,
                 });
             }
+            
+            const match = code.match(/from\s+(\w+)/i);
+            setDetectedEntity(match ? match[1] : null);
+
         } catch (err: any) {
             console.error("executeQuery error", err);
             setError(err?.response?.data?.error ?? err?.message ?? "Error ejecutando la consulta");
@@ -62,13 +60,16 @@ const QueryEditor: React.FC = () => {
 
     return (
         <div className="w-full">
+            {/* HEADER */}
             <div className="flex items-center justify-between mb-4">
                 <div>
                     <h2 className="text-xl font-semibold">Query Editor</h2>
-                    <p className="text-sm text-gray-400">Ejecuta consultas contra tu instancia{instanceId ? ` ${instanceId}` : ""}.</p>
+                    <p className="text-sm text-gray-400">
+                        Ejecuta consultas contra tu instancia{instanceId ? ` ${instanceId}` : ""}.
+                    </p>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-center">
                     <button
                         onClick={handleRun}
                         className="px-4 py-2 bg-blue-600 rounded text-white"
@@ -76,11 +77,21 @@ const QueryEditor: React.FC = () => {
                     >
                         {loading ? "Ejecutando..." : "Run"}
                     </button>
+
+                    {result?.columns && (
+                        <ExportButtons
+                            columns={result.columns}
+                            rows={result.rows ?? []}
+                            entityName="query_result"
+                            advanced={false}
+                        />
+                    )}
                 </div>
             </div>
-
+            
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div className="min-h-[320px] bg-[#0b0c10] border border-gray-800 rounded">
+                
+                <div className="min-h-80 bg-[#0b0c10] border border-gray-800 rounded">
                     <Editor
                         height="360px"
                         defaultLanguage="sql"
@@ -93,8 +104,8 @@ const QueryEditor: React.FC = () => {
                         }}
                     />
                 </div>
-
-                <div className="bg-[#0b0c10] border border-gray-800 rounded p-3 min-h-[320px]">
+                
+                <div className="bg-[#0b0c10] border border-gray-800 rounded p-3 min-h-80">
                     <div className="mb-2 flex items-center justify-between">
                         <div className="text-sm text-gray-400">
                             Resultados {result?.executionTimeMs ? `• ${result.executionTimeMs} ms` : ""}
@@ -103,13 +114,13 @@ const QueryEditor: React.FC = () => {
                     </div>
 
                     {error && (
-                        <div className="text-red-400 text-sm mb-2">
-                            Error: {error}
-                        </div>
+                        <div className="text-red-400 text-sm mb-2">Error: {error}</div>
                     )}
 
                     {!result && !error && (
-                        <div className="text-gray-400 text-sm">Ejecuta una consulta para ver resultados.</div>
+                        <div className="text-gray-400 text-sm">
+                            Ejecuta una consulta para ver resultados.
+                        </div>
                     )}
 
                     {result && result.columns && (
@@ -118,24 +129,34 @@ const QueryEditor: React.FC = () => {
                                 <thead>
                                 <tr>
                                     {result.columns.map((col) => (
-                                        <th key={col} className="text-left px-2 py-1 text-xs text-gray-400">{col}</th>
+                                        <th key={col} className="text-left px-2 py-1 text-xs text-gray-400">
+                                            {col}
+                                        </th>
                                     ))}
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {result.rows && result.rows.length > 0 ? (
+                                {result.rows?.length ? (
                                     result.rows.map((row, i) => (
-                                        <tr key={i} className={i % 2 === 0 ? "bg-transparent" : "bg-[#071018]"}>
+                                        <tr
+                                            key={i}
+                                            className={i % 2 === 0 ? "bg-transparent" : "bg-[#071018]"}
+                                        >
                                             {row.map((cell: any, j: number) => (
                                                 <td key={j} className="px-2 py-1 text-sm">
-                                                    {typeof cell === "object" ? JSON.stringify(cell) : String(cell)}
+                                                    {typeof cell === "object"
+                                                        ? JSON.stringify(cell)
+                                                        : String(cell)}
                                                 </td>
                                             ))}
                                         </tr>
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={result.columns.length} className="text-gray-400 px-2 py-2">
+                                        <td
+                                            colSpan={result.columns.length}
+                                            className="text-gray-400 px-2 py-2"
+                                        >
                                             Sin filas
                                         </td>
                                     </tr>
@@ -145,12 +166,26 @@ const QueryEditor: React.FC = () => {
                         </div>
                     )}
 
-                    {/* Fallback: show raw JSON */}
                     {result && !result.columns && (
                         <pre className="text-xs text-gray-300 overflow-auto max-h-[260px]">
-              {JSON.stringify(result, null, 2)}
-            </pre>
+                            {JSON.stringify(result, null, 2)}
+                        </pre>
                     )}
+                    
+                    {detectedEntity &&
+                        result?.rows &&
+                        result.rows.length > 0 && (
+                            <InstanceInfoPanel
+                                entity={detectedEntity}
+                                records={result.rows.map((r) => {
+                                    const obj: any = {};
+                                    result.columns?.forEach((c, i) => {
+                                        obj[c] = r[i];
+                                    });
+                                    return obj;
+                                })}
+                            />
+                        )}
                 </div>
             </div>
         </div>

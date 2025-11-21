@@ -2,9 +2,9 @@ import { Outlet, NavLink } from "react-router-dom";
 import { useState } from "react";
 
 const menuItems = [
-    { label: "Dashboard", to: "/student/dashboard", icon: "📊" },
-    { label: "Query Editor", to: "/student/query", icon: "📝" },
-    { label: "Data Explorer", to: "/student/data", icon: "📁" },
+    { label: "Dashboard", to: "/student/dashboard"},
+    { label: "Query Editor", to: "/student/query"},
+    { label: "Data Explorer", to: "/student/data"},
 ];
 
 export default function StudentLayout() {

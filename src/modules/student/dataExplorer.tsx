@@ -1,7 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import EntityList from "./components/EntityList";
 import ResultsTable from "./components/ResultsTable";
-import EntityForm from "./components/EntityForm";
+import EntityForm from "./components/EntityForms";
+import ExportButtons from "./components/ExportButtons";
+import InstanceInfoPanel from "./components/InstanceInfoPanel";
+
+const MOCK_ENTITY_SCHEMA = [
+    { name: "id", type: "number" },
+    { name: "name", type: "string" },
+    { name: "is_active", type: "boolean" },
+    { name: "notes", type: "text" },
+];
 
 export default function DataExplorer() {
     const [entities, setEntities] = useState<string[]>([]);
@@ -9,36 +18,42 @@ export default function DataExplorer() {
     const [records, setRecords] = useState<any[]>([]);
     const [showForm, setShowForm] = useState(false);
 
-    // Cargar entidades del backend (simulado)
+    // Mock: cargar lista de entidades
     useEffect(() => {
-        // TODO → GET /student/entities
         setEntities(["users", "products", "orders", "sessions"]);
     }, []);
 
-    // Cuando cambia la entidad seleccionada → cargar registros
+    // Mock: cargar dataset de la entidad
     useEffect(() => {
         if (!selectedEntity) return;
 
-        // TODO → GET /student/entities/{selectedEntity}
         setRecords([
             { id: 1, name: "Ejemplo 1", createdAt: "2025-01-01" },
             { id: 2, name: "Ejemplo 2", createdAt: "2025-01-03" },
         ]);
     }, [selectedEntity]);
 
+    // Crear registros
     const handleCreate = (data: any) => {
-        console.log("Crear registro en", selectedEntity, data);
-
         setShowForm(false);
-
-        // TODO: POST → /student/entities/{entity}
         setRecords((prev) => [...prev, { id: prev.length + 1, ...data }]);
     };
+
+    // Columnas dinámicas
+    const columns = useMemo(() => {
+        if (!records.length) return [];
+        return Object.keys(records[0]);
+    }, [records]);
+
+    // Filas para tabla → formato matriz
+    const rows = useMemo(() => {
+        return records.map((rec) => columns.map((col) => rec[col]));
+    }, [records, columns]);
 
     return (
         <div className="flex h-full gap-4">
 
-            {/* SIDEBAR DE ENTIDADES */}
+            {/* SIDEBAR */}
             <aside className="w-64 bg-[#151823] border border-gray-700 rounded-xl p-4">
                 <h2 className="text-lg font-semibold mb-3">Entidades</h2>
 
@@ -57,23 +72,47 @@ export default function DataExplorer() {
                 </button>
             </aside>
 
-            {/* TABLA DE RESULTADOS */}
+            {/* CONTENIDO PRINCIPAL */}
             <main className="flex-1 bg-[#151823] border border-gray-700 rounded-xl p-4 overflow-auto">
+
                 <h2 className="text-lg font-semibold mb-4">
                     {selectedEntity ? `Entidad: ${selectedEntity}` : "Selecciona una entidad"}
                 </h2>
 
+                {/* EXPORTAR */}
+                {selectedEntity && columns.length > 0 && (
+                    <div className="mb-4">
+                        <ExportButtons
+                            columns={columns}
+                            rows={rows}
+                            advanced={true}
+                            schema={MOCK_ENTITY_SCHEMA}
+                            entityName={selectedEntity}
+                        />
+                    </div>
+                )}
+
+                {/* TABLA */}
                 {selectedEntity ? (
-                    <ResultsTable rows={records} />
+                    <>
+                        <ResultsTable data={records} />
+
+                        {/* INFO PANEL */}
+                        <InstanceInfoPanel
+                            entity={selectedEntity}
+                            records={records}
+                        />
+                    </>
                 ) : (
                     <p className="text-gray-400">No hay entidad seleccionada.</p>
                 )}
             </main>
 
-            {/* MODAL FORM */}
+            {/* FORMULARIO */}
             {showForm && (
                 <EntityForm
-                    entity={selectedEntity!}
+                    entityName={selectedEntity!}
+                    schema={MOCK_ENTITY_SCHEMA}
                     onClose={() => setShowForm(false)}
                     onSubmit={handleCreate}
                 />

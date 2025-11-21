@@ -1,4 +1,3 @@
-
 interface EntityListProps {
     entities: string[];
     selected?: string | null;
@@ -7,18 +6,24 @@ interface EntityListProps {
 
 export default function EntityList({ entities, selected, onSelect }: EntityListProps) {
     return (
-        <div className="w-64 border-r border-gray-200 bg-white">
-            <h2 className="px-4 py-3 font-semibold text-gray-700 border-b">
+        <div className="flex flex-col">
+            <h2 className="py-3 font-semibold text-white border-b border-gray-700">
+                
                 Tablas / Colecciones
             </h2>
-
-            <ul className="divide-y divide-gray-100">
+            
+            <ul className="flex flex-col mt-2">
                 {entities.map((entity) => (
                     <li
                         key={entity}
                         onClick={() => onSelect(entity)}
-                        className={`px-4 py-3 cursor-pointer hover:bg-gray-100
-              ${selected === entity ? "bg-blue-100 font-medium" : ""}`}
+                        className={`
+                            px-4 py-2 cursor-pointer transition-colors rounded-lg capitalize text-sm my-0.5
+                            ${selected === entity
+                            ? "bg-red-600 font-semibold text-white"
+                            : "text-gray-300 hover:bg-[#202534] hover:text-white"
+                        }
+                        `}
                     >
                         {entity}
                     </li>

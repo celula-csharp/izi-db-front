@@ -12,7 +12,7 @@ export default function HeaderDashboard() {
         <div className="p-4 bg-[#111318] border-b border-gray-800 flex justify-between items-center">
 
             {/* Título o Logo de la aplicación */}
-            <h1 className="text-xl font-bold text-white">IziDB</h1>
+            <h1 className="text-xl font-bold text-white">EasyDB</h1>
             
             <Button
                 onClick={handleGoHome}
