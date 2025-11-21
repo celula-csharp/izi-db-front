@@ -1,0 +1,40 @@
+# --- Node ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- Builds ---
+dist/
+build/
+.cache/
+.temp/
+
+# --- Environment variables ---
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# --- Logs ---
+logs/
+*.log
+*.log.*
+log.txt
+
+# --- OS files ---
+.DS_Store
+Thumbs.db
+
+# --- Editor ---
+.vscode/
+.idea/
+
+# --- TypeScript ---
+*.tsbuildinfo
+
+# --- React artifacts ---
+/coverage
+/.parcel-cache
