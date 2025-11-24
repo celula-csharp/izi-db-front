@@ -1,11 +1,14 @@
 import React from 'react';
+import { useNavigate } from 'react-router';
 import { useAuth } from '../auth/useAuth';
 
 export const Topbar: React.FC = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
+    navigate("/")
   };
 
   const initials = user?.name
@@ -20,7 +23,7 @@ export const Topbar: React.FC = () => {
   return (
     <header className="app-topbar">
       <div>
-        <div style={{ fontSize: '0.9rem', fontWeight: 500 }}>Panel EasyDB</div>
+        <div style={{ fontSize: '0.9rem', fontWeight: 500 }}>Panel izi-db</div>
         <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
           Administra motores SQL y NoSQL desde una sola UI.
         </div>

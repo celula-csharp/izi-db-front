@@ -5,7 +5,7 @@ const axiosClient = axios.create({
 });
 
 axiosClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('easydb_token');
+  const token = localStorage.getItem('izi-db_token');
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -16,8 +16,8 @@ axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error?.response?.status === 401) {
-      localStorage.removeItem('easydb_token');
-      localStorage.removeItem('easydb_user');
+      localStorage.removeItem('izi-db_token');
+      localStorage.removeItem('izi-db_user');
       if (window.location.pathname !== '/login') {
         window.location.href = '/login';
       }

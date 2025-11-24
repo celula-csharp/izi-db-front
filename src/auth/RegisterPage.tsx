@@ -1,49 +1,39 @@
-import React, { useState } from 'react';
-
-interface RegisterValues {
-  name: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-}
+import { Checkbox } from '@/components/ui/checkbox';
+import { Field, FieldLabel } from '@/components/ui/field';
+import { registerSchema } from '@/schemas';
+import { RegisterFormValues } from '@/types/auth';
+import { zodResolver } from '@hookform/resolvers/zod';
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import { Link } from 'react-router';
 
 export const RegisterPage: React.FC = () => {
-  const [values, setValues] = useState<RegisterValues>({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
+  const [showPass, setShowPass] = React.useState<boolean>(false);
+  const [submitting, setSubmitting] = React.useState<boolean>(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
   });
 
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setValues((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    if (values.password !== values.confirmPassword) {
-      setError('Las contraseñas no coinciden.');
-      return;
-    }
-
+  const onSubmit = (data: RegisterFormValues) => {
     setSubmitting(true);
     try {
-      // Aquí debería ir la llamada real a tu backend: /auth/register
-      // De momento solo mostramos un aviso para que el front no se rompa.
-      // eslint-disable-next-line no-alert
-      alert('Aquí llamarías al endpoint /auth/register del backend .NET.');
+      console.log(data);
+      alert("Registrado");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error(error.message);
+      } else {
+        console.error(String(error));
+      }
     } finally {
       setSubmitting(false);
     }
-  };
+  }
 
   return (
     <div className="auth-page">
@@ -53,20 +43,21 @@ export const RegisterPage: React.FC = () => {
           Regístrate como estudiante para acceder a tu instancia asignada.
         </div>
 
-        <form className="auth-form" onSubmit={handleSubmit}>
+        <form className="auth-form" onSubmit={handleSubmit(onSubmit)}>
           <div className="auth-field">
             <label className="auth-label" htmlFor="name">
               Nombre
             </label>
             <input
               id="name"
-              name="name"
               className="auth-input"
-              value={values.name}
-              onChange={handleChange}
               placeholder="Juan Estudiante"
+              {...register("username")}
               required
             />
+            {errors.username && (
+              <p className="text-red-500 text-sm">{errors.username.message}</p>
+            )}
           </div>
 
           <div className="auth-field">
@@ -75,14 +66,15 @@ export const RegisterPage: React.FC = () => {
             </label>
             <input
               id="email"
-              name="email"
               type="email"
               className="auth-input"
-              value={values.email}
-              onChange={handleChange}
               placeholder="tu@correo.com"
+              {...register("email")}
               required
             />
+            {errors.email && (
+              <p className="text-red-500 text-sm">{errors.email.message}</p>
+            )}
           </div>
 
           <div className="auth-field">
@@ -91,13 +83,14 @@ export const RegisterPage: React.FC = () => {
             </label>
             <input
               id="password"
-              name="password"
-              type="password"
+              type={showPass ? "text" : "password"}
               className="auth-input"
-              value={values.password}
-              onChange={handleChange}
+              {...register("password")}
               required
             />
+            {errors.password && (
+              <p className="text-red-500 text-sm">{errors.password.message}</p>
+            )}
           </div>
 
           <div className="auth-field">
@@ -106,20 +99,33 @@ export const RegisterPage: React.FC = () => {
             </label>
             <input
               id="confirmPassword"
-              name="confirmPassword"
-              type="password"
+              type={showPass ? "text" : "password"}
               className="auth-input"
-              value={values.confirmPassword}
-              onChange={handleChange}
+              {...register("confirmPassword")}
               required
             />
+            {errors.confirmPassword && (
+              <p className="text-red-500 text-sm">
+                {errors.confirmPassword.message}
+              </p>
+            )}
           </div>
 
-          {error && <div className="auth-error">{error}</div>}
+          <Field orientation="horizontal">
+            <Checkbox
+              onCheckedChange={(checked) => setShowPass(Boolean(checked))}
+              id="show-password"
+              checked={showPass}
+            />
+            <FieldLabel htmlFor="show-password" className="font-normal">
+              Mostrar contraseñas
+            </FieldLabel>
+          </Field>
 
           <button className="auth-submit" type="submit" disabled={submitting}>
-            {submitting ? 'Creando cuenta…' : 'Registrarme'}
+            {submitting ? "Creando cuenta…" : "Registrarme"}
           </button>
+          <span className='mx-auto text-center'>¿Ya tienes una cuenta? <br/><Link to="/auth/login" className="underline!">Iniciar sesión</Link></span>
         </form>
       </div>
     </div>

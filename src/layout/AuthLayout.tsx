@@ -1,11 +1,8 @@
 import React from 'react';
-import { Link, NavLink, Outlet } from 'react-router-dom';
+import { Link, NavLink, Outlet } from 'react-router';
 
 export const AuthLayout: React.FC = () => {
-  const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-    ['public-nav-link', isActive ? 'public-nav-link-active' : '']
-      .filter(Boolean)
-      .join(' ');
+
 
   return (
     <div className="public-root">
@@ -14,29 +11,27 @@ export const AuthLayout: React.FC = () => {
           <Link to="/" className="public-logo">
             <div className="public-logo-mark" />
             <div className="public-logo-text">
-              <span className="public-logo-title">EasyDB</span>
+              <span className="public-logo-title">izi-db</span>
               <span className="public-logo-subtitle">Multi-Motor DB Lab</span>
             </div>
           </Link>
         </div>
 
         <nav className="public-nav-center">
-          <NavLink to="/" className={navLinkClass} end>
+          <NavLink to="/" className="public-nav-link">
             Inicio
           </NavLink>
-          <a href="#motores" className="public-nav-link">
+          <NavLink to="/#motores" className="public-nav-link">
             Motores
-          </a>
-          <a href="#roles" className="public-nav-link">
+          </NavLink>
+          <NavLink to="/#roles" className="public-nav-link">
             Roles
-          </a>
+          </NavLink>
         </nav>
 
         <div className="public-nav-right">
-          <NavLink to="/login" className={navLinkClass}>
-            Login
-          </NavLink>
-          <NavLink to="/register" className="public-nav-cta">
+          <NavLink to="/auth/login">Iniciar sesión</NavLink>
+          <NavLink to="/auth/register" className="public-nav-cta">
             Registrarse
           </NavLink>
         </div>

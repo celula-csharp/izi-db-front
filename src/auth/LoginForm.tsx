@@ -1,45 +1,47 @@
+import { Checkbox } from '@/components/ui/checkbox';
+import { Field, FieldLabel } from '@/components/ui/field';
+import { loginSchema } from '@/schemas';
+import { zodResolver } from '@hookform/resolvers/zod';
 import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router';
 
 export interface LoginFormValues {
   email: string;
   password: string;
 }
 
-interface LoginFormProps {
-  onSubmit: (values: LoginFormValues) => Promise<void>;
-}
-
-export const LoginForm: React.FC<LoginFormProps> = ({ onSubmit }) => {
-  const [values, setValues] = useState<LoginFormValues>({ email: '', password: '' });
+export const LoginForm = () => {
+  const navigate = useNavigate();
+  const [showPass, setShowPass] = React.useState<boolean>(false);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setValues((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
-  };
+  const {
+    register,
+    handleSubmit,
+    formState: { errors }
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+  })
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
+  const onSubmit = (data: LoginFormValues) => {
     setSubmitting(true);
     try {
-      await onSubmit(values);
-    } catch (err: any) {
-      const message =
-        err?.response?.data?.message ??
-        err?.message ??
-        'No se pudo iniciar sesión. Revisa tus credenciales.';
-      setError(message);
+      console.log(data);
+      navigate("/dashboard/student")
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error(error.message);
+      } else {
+        console.error(String(error));
+      }
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <form className="auth-form" onSubmit={handleSubmit}>
+    <form className="auth-form" onSubmit={handleSubmit(onSubmit)}>
       <div className="auth-field">
         <label className="auth-label" htmlFor="email">
           Correo
@@ -47,14 +49,15 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSubmit }) => {
         <input
           className="auth-input"
           id="email"
-          name="email"
           type="email"
           autoComplete="email"
-          placeholder="admin@easydb.local"
-          value={values.email}
-          onChange={handleChange}
+          placeholder="admin@izi-db.local"
           required
+          {...register("email")}
         />
+        {errors.email && (
+          <p className="text-red-500 text-sm">{errors.email.message}</p>
+        )}
       </div>
 
       <div className="auth-field">
@@ -64,20 +67,30 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSubmit }) => {
         <input
           className="auth-input"
           id="password"
-          name="password"
-          type="password"
+          type={showPass ? "text" : "password"}
           autoComplete="current-password"
           placeholder="••••••••"
-          value={values.password}
-          onChange={handleChange}
           required
+          {...register("password")}
         />
+        {errors.password && (
+          <p className="text-red-500 text-sm">{errors.password.message}</p>
+        )}
       </div>
 
-      {error && <div className="auth-error">{error}</div>}
+      <Field orientation="horizontal">
+        <Checkbox
+          onCheckedChange={(checked) => setShowPass(Boolean(checked))}
+          id="show-password"
+          checked={showPass}
+        />
+        <FieldLabel htmlFor="show-password" className="font-normal">
+          Mostrar contraseñas
+        </FieldLabel>
+      </Field>
 
       <button className="auth-submit" type="submit" disabled={submitting}>
-        {submitting ? 'Iniciando sesión…' : 'Entrar a EasyDB'}
+        {submitting ? 'Iniciando sesión…' : 'Entrar a izi-db'}
       </button>
     </form>
   );

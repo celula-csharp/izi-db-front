@@ -10,7 +10,7 @@ export const HomePage: React.FC = () => {
       <section className="home-hero">
         <div className="home-hero-main">
           <p className="home-hero-pill">
-            <span className="home-hero-pill-text">Plataforma multi-motor · EasyDB</span>
+            <span className="home-hero-pill-text">Plataforma multi-motor · izi-db</span>
           </p>
 
           <h1 className="home-hero-title">
@@ -80,7 +80,7 @@ export const HomePage: React.FC = () => {
       <section id="motores" className="home-section">
         <div className="home-section-header">
           <h2>Motores de base de datos</h2>
-          <p>Lo mínimo que soporta el taller de EasyDB.</p>
+          <p>Lo mínimo que soporta el taller de izi-db.</p>
         </div>
         <div className="home-chips-row">
           <span className="home-chip">SQL Server</span>

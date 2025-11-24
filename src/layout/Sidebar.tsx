@@ -18,7 +18,7 @@ export const Sidebar: React.FC = () => {
       <div className="app-logo-row">
         <div className="app-logo-mark" />
         <div>
-          <div className="app-logo-text-main">EasyDB</div>
+          <div className="app-logo-text-main">izi-db</div>
           <div className="app-logo-text-sub">Multi-motor DB Lab</div>
         </div>
       </div>

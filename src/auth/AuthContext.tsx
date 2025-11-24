@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useEffect, useMemo, useState } from 'react';
-import type { User, UserRole } from '../types/auth';
 import { authApi, type LoginPayload } from '../api/authApi';
+import type { User, UserRole } from '../types/auth';
 
 interface AuthState {
   user: User | null;
@@ -26,8 +26,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const bootstrap = async () => {
-      const storedToken = localStorage.getItem('easydb_token');
-      const storedUser = localStorage.getItem('easydb_user');
+      const storedToken = localStorage.getItem('izi-db_token');
+      const storedUser = localStorage.getItem('izi-db_user');
 
       if (!storedToken || !storedUser) {
         setState((s) => ({ ...s, isLoading: false }));
@@ -45,8 +45,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Validar token opcionalmente
         await authApi.getCurrentUser();
       } catch {
-        localStorage.removeItem('easydb_token');
-        localStorage.removeItem('easydb_user');
+        localStorage.removeItem('izi-db_token');
+        localStorage.removeItem('izi-db_user');
         setState({
           user: null,
           token: null,
@@ -60,8 +60,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = useCallback(async (payload: LoginPayload) => {
     const { accessToken, user } = await authApi.login(payload);
-    localStorage.setItem('easydb_token', accessToken);
-    localStorage.setItem('easydb_user', JSON.stringify(user));
+    localStorage.setItem('izi-db_token', accessToken);
+    localStorage.setItem('izi-db_user', JSON.stringify(user));
 
     setState({
       user,
@@ -71,8 +71,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem('easydb_token');
-    localStorage.removeItem('easydb_user');
+    localStorage.removeItem('izi-db_token');
+    localStorage.removeItem('izi-db_user');
     setState({
       user: null,
       token: null,
