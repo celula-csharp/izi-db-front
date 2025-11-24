@@ -6,8 +6,8 @@ interface RoleGuardProps {
   roles: UserRole[];
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const RoleGuard: React.FC<RoleGuardProps> = ({ roles }) => {
+  console.log(roles)
   // TODO
   //const { user } = useAuth();
 
