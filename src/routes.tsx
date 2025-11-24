@@ -1,15 +1,22 @@
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter, redirect } from "react-router";
 
-import Layout from "./page/_layout";
 
-import StudentLayout from "./modules/student/layout";
-import StudentIndex from "./modules/student/index";
 import StudentDashboard from "./modules/student/dashboard";
+import StudentIndex from "./modules/student/index";
+import StudentLayout from "./modules/student/layout";
 
+import { LoginPage } from "./auth/LoginPage";
+import { ProtectedRoute } from "./auth/ProtectedRoute";
+import { RegisterPage } from "./auth/RegisterPage";
+import { RoleGuard } from "./auth/RoleGuard";
+import { AuthLayout } from "./layout/AuthLayout";
+import { MainLayout } from "./layout/MainLayout";
+import EntityForm from "./modules/student/components/EntityForms";
+import EntityList from "./modules/student/components/EntityList";
 import QueryEditor from "./modules/student/components/QueryEditor";
 import DataExplorer from "./modules/student/dataExplorer";
-import EntityList from "./modules/student/components/EntityList";
-import EntityForm from "./modules/student/components/EntityForms";
+import { AdminDashboard } from "./pages/AdminDashboard";
+import { HomePage } from "./pages/HomePage";
 
 const TestSchema = [
   { name: 'Nombre', type: 'string' },
@@ -19,69 +26,116 @@ const TestSchema = [
 const Routes = createBrowserRouter([
   {
     path: "",
-    element: <Layout />,
+    element: <AuthLayout />,
     children: [
       {
         index: true,
-        element: <div>HOLA</div>,
+        element: <HomePage />,
+      },
+      {
+        path: "auth",
+        children: [
+          {
+            index: true,
+            loader: () => redirect("/auth/login"),
+          },
+          {
+            path: "login",
+            element: <LoginPage />,
+          },
+          {
+            path: "register",
+            element: <RegisterPage />,
+          },
+        ],
       },
     ],
   },
-
   {
-    path: "/student",
-    element: <StudentLayout />,
+    path: "",
+    element: <ProtectedRoute />,
     children: [
       {
-        index: true,
-        element: <StudentIndex />,
-      },
-
-      {
         path: "dashboard",
-        element: <StudentDashboard />,
-      },
+        element: <MainLayout />,
+        children: [
+          {
+            path: "admin",
+            element: <RoleGuard roles={["ADMIN"]} />,
+            children: [
+              {
+                index: true,
+                element: <AdminDashboard />,
+              },
+            ],
+          },
+          {
+            path: "student",
+            element: <RoleGuard roles={["STUDENT"]} />,
+            children: [
+              {
+                element: <StudentLayout />,
+                children: [
+                  {
+                    index: true,
+                    element: <StudentIndex />,
+                  },
 
-      {
-        path: "query",
-        element: <QueryEditor />,
-      },
+                  {
+                    path: "dashboard",
+                    element: <StudentDashboard />,
+                  },
 
-      {
-        path: "data",
-        element: <DataExplorer />,
-      },
+                  {
+                    path: "query",
+                    element: <QueryEditor />,
+                  },
 
-      {
-        path: ":id/data",
-        element: <DataExplorer />,
-      },
+                  {
+                    path: "data",
+                    element: <DataExplorer />,
+                  },
 
-      {
-        path: ":id/logs",
-        element: <div>Logs (coming soon)</div>,
-      },
+                  {
+                    path: ":id/data",
+                    element: <DataExplorer />,
+                  },
 
-      {
-        path: "entity-list",
-        element: (
-            <EntityList
-                entities={[]}
-                onSelect={(entity) => console.log('List selected:', entity)}
-            />
-        ),
-      },
+                  {
+                    path: ":id/logs",
+                    element: <div>Logs (coming soon)</div>,
+                  },
 
-      {
-        path: "entity-form",
-        element: (
-            <EntityForm
-                entityName="Instancia de prueba"
-                schema={TestSchema}
-                onSubmit={(data) => console.log('Form submitted:', data)}
-                onClose={() => console.log("cerrado")}
-            />
-        ),
+                  {
+                    path: "entity-list",
+                    element: (
+                      <EntityList
+                        entities={[]}
+                        onSelect={(entity) =>
+                          console.log("List selected:", entity)
+                        }
+                      />
+                    ),
+                  },
+
+                  {
+                    path: "entity-form",
+                    element: (
+                      <EntityForm
+                        entityName="Instancia de prueba"
+                        schema={TestSchema}
+                        onSubmit={(data) =>
+                          console.log("Form submitted:", data)
+                        }
+                        onClose={() => console.log("cerrado")}
+                      />
+                    ),
+                  },
+                ],
+              },
+            ],
+          },
+        ],
       },
     ],
   },
