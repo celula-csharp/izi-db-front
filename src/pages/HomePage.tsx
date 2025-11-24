@@ -6,7 +6,7 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="home-root">
-      {/* Hero principal */}
+      {/* Hero principal, centrado */}
       <section className="home-hero">
         <div className="home-hero-main">
           <p className="home-hero-pill">
@@ -14,8 +14,8 @@ export const HomePage: React.FC = () => {
           </p>
 
           <h1 className="home-hero-title">
-            Orquesta instancias de bases de datos
-            <span className="home-hero-highlight"> como si fuera tu propio cloud.</span>
+            Orquesta instancias de bases de datos.
+            <span className="home-hero-highlight"> ¡Como si fuera tu propio cloud!</span>
           </h1>
 
           <p className="home-hero-subtitle">
@@ -42,19 +42,22 @@ export const HomePage: React.FC = () => {
           </div>
 
           <div className="home-hero-tags">
-            <span className="home-tag">JWT + roles</span>
-            <span className="home-tag">React + .NET</span>
-            <span className="home-tag">Docker · Instancias aisladas</span>
+            <span className="home-tag home-tag-pulse-1">JWT + roles</span>
+            <span className="home-tag home-tag-pulse-2">React + .NET</span>
+            <span className="home-tag home-tag-pulse-3">Docker · Instancias aisladas</span>
           </div>
         </div>
+      </section>
 
-        {/* Estado del laboratorio dentro del hero */}
-        <div className="home-hero-aside">
+      {/* Estado del laboratorio: debajo del hero, centrado */}
+      <section className="lab-status-section">
+        <div className="lab-status-inner">
           <div className="home-hero-card">
             <div className="home-hero-card-header">
-              <span>Estado del laboratorio</span>
+              <span className="home-hero-card-title">Estado del laboratorio</span>
               <span className="home-hero-dot" />
             </div>
+
             <div className="home-hero-metrics">
               <div className="home-hero-metric">
                 <span className="home-hero-metric-label">Motores activos</span>
