@@ -24,41 +24,52 @@ api.interceptors.request.use((config) => {
 export const studentService = {
     // Obtener las instancias que le pertenecen al estudiante
     getInstances: async () => {
-        return api.get("/instances");
+        return api.get("/DatabaseInstances");
     },
 
     // Obtener detalles de una instancia específica
     getInstanceById: async (instanceId: string) => {
-        return api.get(`/instances/${instanceId}`);
+        return api.get(`/DatabaseInstances/${instanceId}`);
     },
 
     // Ejecutar una consulta en un motor
     executeQuery: async (instanceId: string, query: string) => {
-        return api.post(`/instances/${instanceId}/query`, { query });
+        return api.post(`/DatabaseInstances/${instanceId}/query`, { query });
     },
 
     // Obtener entidades (tablas, colecciones, keys)
     getEntities: async (instanceId: string) => {
-        return api.get(`/instances/${instanceId}/entities`);
+        return api.get(`/DatabaseInstances/${instanceId}/entities`);
     },
 
     // CRUD dinámico
     createRecord: async (instanceId: string, entity: string, data: any) => {
-        return api.post(`/instances/${instanceId}/entity/${entity}`, data);
+        return api.post(
+          `/DatabaseInstances/${instanceId}/entity/${entity}`,
+          data
+        );
     },
 
     updateRecord: async (instanceId: string, entity: string, id: string, data: any) => {
-        return api.put(`/instances/${instanceId}/entity/${entity}/${id}`, data);
+        return api.put(
+          `/DatabaseInstances/${instanceId}/entity/${entity}/${id}`,
+          data
+        );
     },
 
     deleteRecord: async (instanceId: string, entity: string, id: string) => {
-        return api.delete(`/instances/${instanceId}/entity/${entity}/${id}`);
+        return api.delete(
+          `/DatabaseInstances/${instanceId}/entity/${entity}/${id}`
+        );
     },
 
     // Exportación (CSV, JSON)
     exportData: async (instanceId: string, entity: string, format: "csv" | "json") => {
-        return api.get(`/instances/${instanceId}/entity/${entity}/export?format=${format}`, {
+        return api.get(
+          `/DatabaseInstances/${instanceId}/entity/${entity}/export?format=${format}`,
+          {
             responseType: "blob",
-        });
+          }
+        );
     },
 };

@@ -1,4 +1,4 @@
-import { createBrowserRouter, redirect } from "react-router";
+import { createBrowserRouter, redirect, Navigate } from "react-router";
 
 
 import StudentDashboard from "./modules/student/dashboard";
@@ -52,9 +52,14 @@ const Routes = createBrowserRouter([
     ],
   },
   {
-    path: "",
+    path: "", // Ruta de Nivel Raíz para usuarios autenticados
     element: <ProtectedRoute />,
     children: [
+      {
+        index: true,
+        loader: () => redirect("/dashboard"),
+      },
+
       {
         path: "dashboard",
         element: <MainLayout />,
@@ -76,8 +81,14 @@ const Routes = createBrowserRouter([
               {
                 element: <StudentLayout />,
                 children: [
+                  // ✅ REDIRECCIÓN DE INDEX (Fuerza a 'dashboard' para /dashboard/student)
                   {
                     index: true,
+                    element: <Navigate to="dashboard" replace />,
+                  },
+
+                  {
+                    path: "index",
                     element: <StudentIndex />,
                   },
 
@@ -109,26 +120,26 @@ const Routes = createBrowserRouter([
                   {
                     path: "entity-list",
                     element: (
-                      <EntityList
-                        entities={[]}
-                        onSelect={(entity) =>
-                          console.log("List selected:", entity)
-                        }
-                      />
+                        <EntityList
+                            entities={[]}
+                            onSelect={(entity) =>
+                                console.log("List selected:", entity)
+                            }
+                        />
                     ),
                   },
 
                   {
                     path: "entity-form",
                     element: (
-                      <EntityForm
-                        entityName="Instancia de prueba"
-                        schema={TestSchema}
-                        onSubmit={(data) =>
-                          console.log("Form submitted:", data)
-                        }
-                        onClose={() => console.log("cerrado")}
-                      />
+                        <EntityForm
+                            entityName="Instancia de prueba"
+                            schema={TestSchema}
+                            onSubmit={(data) =>
+                                console.log("Form submitted:", data)
+                            }
+                            onClose={() => console.log("cerrado")}
+                        />
                     ),
                   },
                 ],

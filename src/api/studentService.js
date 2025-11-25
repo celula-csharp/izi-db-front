@@ -19,33 +19,33 @@ api.interceptors.request.use((config) => {
 export const studentService = {
     // Obtener las instancias que le pertenecen al estudiante
     getInstances: async () => {
-        return api.get("/instances");
+        return api.get("/DatabaseInstances");
     },
     // Obtener detalles de una instancia específica
     getInstanceById: async (instanceId) => {
-        return api.get(`/instances/${instanceId}`);
+        return api.get(`/DatabaseInstances/${instanceId}`);
     },
     // Ejecutar una consulta en un motor
     executeQuery: async (instanceId, query) => {
-        return api.post(`/instances/${instanceId}/query`, { query });
+        return api.post(`/DatabaseInstances/${instanceId}/query`, { query });
     },
     // Obtener entidades (tablas, colecciones, keys)
     getEntities: async (instanceId) => {
-        return api.get(`/instances/${instanceId}/entities`);
+        return api.get(`/DatabaseInstances/${instanceId}/entities`);
     },
     // CRUD dinámico
     createRecord: async (instanceId, entity, data) => {
-        return api.post(`/instances/${instanceId}/entity/${entity}`, data);
+        return api.post(`/DatabaseInstances/${instanceId}/entity/${entity}`, data);
     },
     updateRecord: async (instanceId, entity, id, data) => {
-        return api.put(`/instances/${instanceId}/entity/${entity}/${id}`, data);
+        return api.put(`/DatabaseInstances/${instanceId}/entity/${entity}/${id}`, data);
     },
     deleteRecord: async (instanceId, entity, id) => {
-        return api.delete(`/instances/${instanceId}/entity/${entity}/${id}`);
+        return api.delete(`/DatabaseInstances/${instanceId}/entity/${entity}/${id}`);
     },
     // Exportación (CSV, JSON)
     exportData: async (instanceId, entity, format) => {
-        return api.get(`/instances/${instanceId}/entity/${entity}/export?format=${format}`, {
+        return api.get(`/DatabaseInstances/${instanceId}/entity/${entity}/export?format=${format}`, {
             responseType: "blob",
         });
     },

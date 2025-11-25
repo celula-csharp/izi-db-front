@@ -2,9 +2,9 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 const menuItems = [
-    { label: "Dashboard", to: "/student/dashboard", icon: "📊" },
-    { label: "Query Editor", to: "/student/query", icon: "✏️" },
-    { label: "Data Explorer", to: "/student/data", icon: "🔍" },
+    { label: "Dashboard", to: "/dashboard/student/dashboard", icon: "📊" },
+    { label: "Query Editor", to: "/dashboard/student/query", icon: "✏️" },
+    { label: "Data Explorer", to: "/dashboard/student/data", icon: "🔍" },
 ];
 export default function StudentLayout() {
     const [sidebarOpen, setSidebarOpen] = useState(true);

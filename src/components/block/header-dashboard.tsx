@@ -5,7 +5,7 @@ export default function HeaderDashboard() {
     const navigate = useNavigate();
 
     const handleGoHome = () => {
-        navigate('/student/dashboard');
+        navigate('/dashboard/student/');
     };
 
     return (

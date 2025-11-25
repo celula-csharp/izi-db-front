@@ -37,9 +37,14 @@ export const Sidebar: React.FC = () => {
           )}
 
           {user?.role === 'STUDENT' && (
-            <NavLink to="/student" className={linkClass}>
-              Panel estudiante
-            </NavLink>
+            <>
+                <NavLink to="/student" className={linkClass}>
+                    Panel estudiante
+                </NavLink>
+                <NavLink to="/student" className={linkClass}>
+                    Panel estudiante
+                </NavLink>
+            </>
           )}
         </nav>
       </div>
