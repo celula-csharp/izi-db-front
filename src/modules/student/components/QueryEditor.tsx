@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { studentService } from "@/api/studentService";
 import Editor from "@monaco-editor/react";
@@ -178,7 +177,7 @@ const QueryEditor: React.FC = () => {
 
   const processResponseData = (data: any, executionTime: number) => {
     let rows = [];
-    let columns = [];
+    let columns: string[] = [];
     const rawData = data;
 
     try {
