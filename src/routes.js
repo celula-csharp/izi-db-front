@@ -1,5 +1,5 @@
 import { jsx as _jsx } from "react/jsx-runtime";
-import { createBrowserRouter, Navigate, Outlet, redirect } from "react-router";
+import { createBrowserRouter, Outlet, redirect } from "react-router";
 import { LoginPage } from "./auth/LoginPage";
 import { ProtectedRoute } from "./auth/ProtectedRoute";
 import { RegisterPage } from "./auth/RegisterPage";
@@ -76,11 +76,6 @@ const Routes = createBrowserRouter([
                             {
                                 element: _jsx(Outlet, {}),
                                 children: [
-                                    // ✅ REDIRECCIÓN DE INDEX (Fuerza a 'dashboard' para /dashboard/student)
-                                    {
-                                        index: true,
-                                        element: _jsx(Navigate, { to: "/dashboard", replace: true }),
-                                    },
                                     {
                                         path: "index",
                                         element: _jsx(StudentIndex, {}),

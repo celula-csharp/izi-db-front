@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate, Outlet, redirect } from "react-router";
+import { createBrowserRouter, Outlet, redirect } from "react-router";
 
 import { LoginPage } from "./auth/LoginPage";
 import { ProtectedRoute } from "./auth/ProtectedRoute";
@@ -79,12 +79,6 @@ const Routes = createBrowserRouter([
               {
                 element: <Outlet />,
                 children: [
-                  // ✅ REDIRECCIÓN DE INDEX (Fuerza a 'dashboard' para /dashboard/student)
-                  {
-                    index: true,
-                    element: <Navigate to="/dashboard" replace />,
-                  },
-
                   {
                     path: "index",
                     element: <StudentIndex />,

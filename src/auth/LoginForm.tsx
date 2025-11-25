@@ -1,11 +1,11 @@
-import { Checkbox } from '@/components/ui/checkbox';
-import { Field, FieldLabel } from '@/components/ui/field';
-import { loginSchema } from '@/schemas';
-import { zodResolver } from '@hookform/resolvers/zod';
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import {useAuth} from "@/auth/useAuth";
-import { useNavigate } from 'react-router';
+import { useAuth } from "@/auth/useAuth";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Field, FieldLabel } from "@/components/ui/field";
+import { loginSchema } from "@/schemas";
+import { zodResolver } from "@hookform/resolvers/zod";
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router";
 
 export interface LoginFormValues {
   email: string;
@@ -21,20 +21,19 @@ export const LoginForm = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors }
+    formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
-  })
+  });
 
   const onSubmit = async (data: LoginFormValues) => {
     setSubmitting(true);
-    
-    
+
     try {
       console.log(data);
       await login(data);
 
-      navigate("/dashboard/student")
+      navigate("/dashboard/student/index");
     } catch (error: unknown) {
       if (error instanceof Error) {
         console.error(error.message);
@@ -96,7 +95,7 @@ export const LoginForm = () => {
       </Field>
 
       <button className="auth-submit" type="submit" disabled={submitting}>
-        {submitting ? 'Iniciando sesión…' : 'Entrar a izi-db'}
+        {submitting ? "Iniciando sesión…" : "Entrar a izi-db"}
       </button>
     </form>
   );

@@ -1,6 +1,6 @@
 import { loginSchema, registerSchema } from "@/schemas";
 import type z from "zod";
-export type UserRole = 'ADMIN' | 'STUDENT';
+export type UserRole = "ADMIN" | "STUDENT";
 
 export interface User {
   id: string;
@@ -14,4 +14,4 @@ export type LoginFormValues = z.infer<typeof loginSchema>;
 export type Login = {
   email: string;
   password: string;
-}
+};

@@ -1,13 +1,16 @@
-import { Checkbox } from '@/components/ui/checkbox';
-import { Field, FieldLabel } from '@/components/ui/field';
-import { registerSchema } from '@/schemas';
-import { RegisterFormValues } from '@/types/auth';
-import { zodResolver } from '@hookform/resolvers/zod';
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import { Link } from 'react-router';
+import { Checkbox } from "@/components/ui/checkbox";
+import { Field, FieldLabel } from "@/components/ui/field";
+import { registerSchema } from "@/schemas";
+import { RegisterFormValues } from "@/types/auth";
+import { zodResolver } from "@hookform/resolvers/zod";
+import React from "react";
+import { useForm } from "react-hook-form";
+import { Link, useNavigate } from "react-router";
+import { useAuth } from "./useAuth";
 
 export const RegisterPage: React.FC = () => {
+  const navigate = useNavigate();
+  const { register: registerAsync } = useAuth();
   const [showPass, setShowPass] = React.useState<boolean>(false);
   const [submitting, setSubmitting] = React.useState<boolean>(false);
 
@@ -19,11 +22,16 @@ export const RegisterPage: React.FC = () => {
     resolver: zodResolver(registerSchema),
   });
 
-  const onSubmit = (data: RegisterFormValues) => {
+  const onSubmit = async (data: RegisterFormValues) => {
     setSubmitting(true);
     try {
-      console.log(data);
-      alert("Registrado");
+      const payload = {
+        ...data,
+        role: "STUDENT" as const, // Agregar role manualmente
+      };
+      console.log(payload);
+      await registerAsync(payload);
+      navigate("/auth/login");
     } catch (error: unknown) {
       if (error instanceof Error) {
         console.error(error.message);
@@ -33,7 +41,7 @@ export const RegisterPage: React.FC = () => {
     } finally {
       setSubmitting(false);
     }
-  }
+  };
 
   return (
     <div className="auth-page">
@@ -125,7 +133,12 @@ export const RegisterPage: React.FC = () => {
           <button className="auth-submit" type="submit" disabled={submitting}>
             {submitting ? "Creando cuenta…" : "Registrarme"}
           </button>
-          <span className='mx-auto text-center'>¿Ya tienes una cuenta? <br/><Link to="/auth/login" className="underline!">Iniciar sesión</Link></span>
+          <span className="mx-auto text-center">
+            ¿Ya tienes una cuenta? <br />
+            <Link to="/auth/login" className="underline!">
+              Iniciar sesión
+            </Link>
+          </span>
         </form>
       </div>
     </div>

@@ -1,25 +1,25 @@
 import { jsx as _jsx } from "react/jsx-runtime";
-import { createContext, useCallback, useEffect, useMemo, useState } from 'react';
-import { authApi } from '../api/authApi';
+import { createContext, useCallback, useEffect, useMemo, useState, } from "react";
+import { authApi } from "../api/authApi";
 export const AuthContext = createContext(undefined);
-export const AuthProvider = ({ children }) => {
+export const AuthProvider = ({ children, }) => {
     const [state, setState] = useState({
         user: null,
         token: null,
-        isLoading: true
+        isLoading: true,
     });
     // Función para parsear usuario con valor por defecto
     const parseStoredUser = (storedUser) => {
         const userData = JSON.parse(storedUser);
         return {
             ...userData,
-            role: userData.role ?? 'STUDENT' // Valor por defecto para role null/undefined
+            role: userData.role ?? "STUDENT", // Valor por defecto para role null/undefined
         };
     };
     useEffect(() => {
         const bootstrap = async () => {
-            const storedToken = localStorage.getItem('izi-db_token');
-            const storedUser = localStorage.getItem('izi-db_user');
+            const storedToken = localStorage.getItem("izi-db_token");
+            const storedUser = localStorage.getItem("izi-db_user");
             if (!storedToken || !storedUser) {
                 setState((s) => ({ ...s, isLoading: false }));
                 return;
@@ -31,18 +31,18 @@ export const AuthProvider = ({ children }) => {
                 setState({
                     user: parsedUser,
                     token: storedToken,
-                    isLoading: false
+                    isLoading: false,
                 });
             }
             catch (error) {
-                console.error('Error during auth bootstrap:', error);
+                console.error("Error during auth bootstrap:", error);
                 // Limpiar datos inválidos
-                localStorage.removeItem('izi-db_token');
-                localStorage.removeItem('izi-db_user');
+                localStorage.removeItem("izi-db_token");
+                localStorage.removeItem("izi-db_user");
                 setState({
                     user: null,
                     token: null,
-                    isLoading: false
+                    isLoading: false,
                 });
             }
         };
@@ -54,28 +54,37 @@ export const AuthProvider = ({ children }) => {
             // Asegurar que el usuario tenga un role por defecto
             const userWithDefaultRole = {
                 ...user,
-                role: user.role ?? 'STUDENT'
+                role: user.role ?? "STUDENT",
             };
-            localStorage.setItem('izi-db_token', token);
-            localStorage.setItem('izi-db_user', JSON.stringify(userWithDefaultRole));
+            localStorage.setItem("izi-db_token", token);
+            localStorage.setItem("izi-db_user", JSON.stringify(userWithDefaultRole));
             setState({
                 user: userWithDefaultRole,
                 token,
-                isLoading: false
+                isLoading: false,
             });
         }
         catch (error) {
-            console.error('Login error:', error);
+            console.error("Login error:", error);
+            throw error; // Re-lanzar el error para manejarlo en el componente
+        }
+    }, []);
+    const register = useCallback(async (payload) => {
+        try {
+            await authApi.register(payload);
+        }
+        catch (error) {
+            console.error("Login error:", error);
             throw error; // Re-lanzar el error para manejarlo en el componente
         }
     }, []);
     const logout = useCallback(() => {
-        localStorage.removeItem('izi-db_token');
-        localStorage.removeItem('izi-db_user');
+        localStorage.removeItem("izi-db_token");
+        localStorage.removeItem("izi-db_user");
         setState({
             user: null,
             token: null,
-            isLoading: false
+            isLoading: false,
         });
     }, []);
     const hasRole = useCallback((roles) => {
@@ -85,8 +94,9 @@ export const AuthProvider = ({ children }) => {
         ...state, // Spread state para evitar duplicación
         isAuthenticated: Boolean(state.user && state.token),
         login,
+        register,
         logout,
-        hasRole
-    }), [state, login, logout, hasRole]);
+        hasRole,
+    }), [state, login, register, logout, hasRole]);
     return _jsx(AuthContext.Provider, { value: value, children: children });
 };
