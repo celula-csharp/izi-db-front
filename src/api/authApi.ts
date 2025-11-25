@@ -18,8 +18,8 @@ export const authApi = {
     return data;
   },
 
-  async getCurrentUser(): Promise<User> {
-    const { data } = await axiosClient.get<User>("/Users/me");
+  async getCurrentUser(id: string): Promise<User> {
+    const { data } = await axiosClient.get<User>(`/Users/${id}`);
     return data;
   }
 };

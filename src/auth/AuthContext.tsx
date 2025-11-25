@@ -24,6 +24,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isLoading: true
   });
 
+  // Función para parsear usuario con valor por defecto
+  const parseStoredUser = (storedUser: string): User => {
+    const userData = JSON.parse(storedUser);
+    return {
+      ...userData,
+      role: userData.role ?? 'STUDENT' // Valor por defecto para role null/undefined
+    };
+  };
+
   useEffect(() => {
     const bootstrap = async () => {
       const storedToken = localStorage.getItem('izi-db_token');
@@ -35,16 +44,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       try {
-        const parsedUser: User = JSON.parse(storedUser);
+        const parsedUser = parseStoredUser(storedUser);
+        
+        // Validar token con la API
+        await authApi.getCurrentUser(parsedUser.id);
+        
         setState({
           user: parsedUser,
           token: storedToken,
           isLoading: false
         });
-
-        // Validar token opcionalmente
-        await authApi.getCurrentUser();
-      } catch {
+      } catch (error) {
+        console.error('Error during auth bootstrap:', error);
+        // Limpiar datos inválidos
         localStorage.removeItem('izi-db_token');
         localStorage.removeItem('izi-db_user');
         setState({
@@ -59,18 +71,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = useCallback(async (payload: LoginPayload) => {
-    const { token, user } = await authApi.login(payload);
+    try {
+      const { token, user } = await authApi.login(payload);
 
-    console.log(token)
+      // Asegurar que el usuario tenga un role por defecto
+      const userWithDefaultRole: User = {
+        ...user,
+        role: user.role ?? 'STUDENT'
+      };
 
-    localStorage.setItem('izi-db_token', token);
-    localStorage.setItem('izi-db_user', JSON.stringify(user));
+      localStorage.setItem('izi-db_token', token);
+      localStorage.setItem('izi-db_user', JSON.stringify(userWithDefaultRole));
 
-    setState({
-      user,
-      token: token,
-      isLoading: false
-    });
+      setState({
+        user: userWithDefaultRole,
+        token,
+        isLoading: false
+      });
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error; // Re-lanzar el error para manejarlo en el componente
+    }
   }, []);
 
   const logout = useCallback(() => {
@@ -85,15 +106,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const hasRole = useCallback(
     (roles: UserRole[]) => {
-      if (!state.user) return false;
-      return roles.includes(state.user.role);
+      return state.user ? roles.includes(state.user.role) : false;
     },
     [state.user]
   );
 
   const value: AuthContextValue = useMemo(
     () => ({
-      ...state,
+      ...state, // Spread state para evitar duplicación
       isAuthenticated: Boolean(state.user && state.token),
       login,
       logout,

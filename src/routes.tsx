@@ -1,9 +1,4 @@
-import { createBrowserRouter, redirect, Navigate } from "react-router";
-
-
-import StudentDashboard from "./modules/student/dashboard";
-import StudentIndex from "./modules/student/index";
-import StudentLayout from "./modules/student/layout";
+import { createBrowserRouter, Navigate, Outlet, redirect } from "react-router";
 
 import { LoginPage } from "./auth/LoginPage";
 import { ProtectedRoute } from "./auth/ProtectedRoute";
@@ -14,13 +9,16 @@ import { MainLayout } from "./layout/MainLayout";
 import EntityForm from "./modules/student/components/EntityForms";
 import EntityList from "./modules/student/components/EntityList";
 import QueryEditor from "./modules/student/components/QueryEditor";
+import StudentDashboard from "./modules/student/dashboard";
 import DataExplorer from "./modules/student/dataExplorer";
+import StudentIndex from "./modules/student/index";
+import NewInstance from "./modules/student/instances/new-instance";
 import { AdminDashboard } from "./pages/AdminDashboard";
 import { HomePage } from "./pages/HomePage";
 
 const TestSchema = [
-  { name: 'Nombre', type: 'string' },
-  { name: 'Puerto', type: 'number' },
+  { name: "Nombre", type: "string" },
+  { name: "Puerto", type: "number" },
 ];
 
 const Routes = createBrowserRouter([
@@ -79,12 +77,12 @@ const Routes = createBrowserRouter([
             element: <RoleGuard roles={["STUDENT"]} />,
             children: [
               {
-                element: <StudentLayout />,
+                element: <Outlet />,
                 children: [
                   // ✅ REDIRECCIÓN DE INDEX (Fuerza a 'dashboard' para /dashboard/student)
                   {
                     index: true,
-                    element: <Navigate to="dashboard" replace />,
+                    element: <Navigate to="/dashboard" replace />,
                   },
 
                   {
@@ -106,6 +104,10 @@ const Routes = createBrowserRouter([
                     path: "data",
                     element: <DataExplorer />,
                   },
+                  {
+                    path: "new-instance",
+                    element: <NewInstance />,
+                  },
 
                   {
                     path: ":id/data",
@@ -120,26 +122,26 @@ const Routes = createBrowserRouter([
                   {
                     path: "entity-list",
                     element: (
-                        <EntityList
-                            entities={[]}
-                            onSelect={(entity) =>
-                                console.log("List selected:", entity)
-                            }
-                        />
+                      <EntityList
+                        entities={[]}
+                        onSelect={(entity) =>
+                          console.log("List selected:", entity)
+                        }
+                      />
                     ),
                   },
 
                   {
                     path: "entity-form",
                     element: (
-                        <EntityForm
-                            entityName="Instancia de prueba"
-                            schema={TestSchema}
-                            onSubmit={(data) =>
-                                console.log("Form submitted:", data)
-                            }
-                            onClose={() => console.log("cerrado")}
-                        />
+                      <EntityForm
+                        entityName="Instancia de prueba"
+                        schema={TestSchema}
+                        onSubmit={(data) =>
+                          console.log("Form submitted:", data)
+                        }
+                        onClose={() => console.log("cerrado")}
+                      />
                     ),
                   },
                 ],

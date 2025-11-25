@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../auth/useAuth';
+import { FolderSearch, Home, LayoutDashboard, Pencil, SquarePen } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
   const { user } = useAuth();
@@ -12,6 +13,9 @@ export const Sidebar: React.FC = () => {
     ]
       .filter(Boolean)
       .join(' ');
+
+  const roleType = user?.role ?? "STUDENT";
+  const rolePath = roleType.toLowerCase(); // Convertir a lowercase
 
   return (
     <aside className="app-sidebar">
@@ -26,7 +30,8 @@ export const Sidebar: React.FC = () => {
       <div>
         <div className="app-sidebar-section-title">Navegación</div>
         <nav className="app-sidebar-nav">
-          <NavLink to="/" className={linkClass} end>
+          <NavLink to={`/dashboard/${rolePath}/index`} className={linkClass} end>
+            <Home className='svg' />
             Inicio
           </NavLink>
 
@@ -38,11 +43,17 @@ export const Sidebar: React.FC = () => {
 
           {user?.role === 'STUDENT' && (
             <>
-                <NavLink to="/student" className={linkClass}>
-                    Panel estudiante
+                <NavLink to={`/dashboard/${rolePath}/dashboard`} className={linkClass}>
+                  <LayoutDashboard className='svg' />
+                  Dashboard
                 </NavLink>
-                <NavLink to="/student" className={linkClass}>
-                    Panel estudiante
+                <NavLink to={`/dashboard/${rolePath}/query`} className={linkClass}>
+                  <SquarePen className='svg' />
+                  Query Editor
+                </NavLink>
+                <NavLink to={`/dashboard/${rolePath}/data`} className={linkClass}>
+                  <FolderSearch className='svg' />
+                  Data explorer
                 </NavLink>
             </>
           )}

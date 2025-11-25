@@ -79,21 +79,6 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Motores soportados */}
-      <section id="motores" className="home-section">
-        <div className="home-section-header">
-          <h2>Motores de base de datos</h2>
-          <p>Lo mínimo que soporta el taller de izi-db.</p>
-        </div>
-        <div className="home-chips-row">
-          <span className="home-chip">SQL Server</span>
-          <span className="home-chip">PostgreSQL</span>
-          <span className="home-chip">MySQL / MariaDB</span>
-          <span className="home-chip">MongoDB</span>
-          <span className="home-chip">Redis</span>
-        </div>
-      </section>
-
       {/* Roles */}
       <section id="roles" className="home-section home-section-grid">
         <article className="home-card">

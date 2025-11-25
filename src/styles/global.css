@@ -462,7 +462,6 @@ a {
 
 .lab-status-inner {
   width: 100%;
-  max-width: 760px;   /* más ancho para que quepan los 3 */
   margin: 0 auto;     /* centrado horizontal */
 }
 
@@ -522,12 +521,14 @@ a {
 
 .home-hero-metric-label {
   font-size: 0.75rem;
+  display: flex;
   color: var(--text-muted);
 }
 
 .home-hero-metric-value {
   font-size: 1.15rem;
   font-weight: 600;
+  margin-right: .5rem;
 }
 
 .home-hero-metric-foot {
@@ -780,14 +781,19 @@ a {
 }
 
 .app-sidebar-link {
-  border-radius: 999px;
+  border-radius: .5rem;
   padding: 0.45rem 0.75rem;
-  font-size: 0.8rem;
+  font-size: 1rem !important;
   color: #9ca3af;
   border: 1px solid transparent;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: .5rem;
+}
+.svg {
+  font-size: 1.25em;
+  width: 1em;
+  height: 1em;
 }
 
 .app-sidebar-link:hover {
