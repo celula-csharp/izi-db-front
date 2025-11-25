@@ -151,7 +151,8 @@ const QueryEditor = () => {
             let res;
             if (operation === "find") {
                 // Ejecutar consulta FIND
-                res = await studentService.executeQuery(instanceId, JSON.stringify(parsedQuery), collectionName, databaseSchema);
+                res = await studentService.executeQuery(instanceId, cleanCode, // Enviar el string JSON limpio directamente
+                collectionName, databaseSchema);
             }
             else {
                 // Ejecutar INSERT - usar el método insertDocument
@@ -211,6 +212,7 @@ const QueryEditor = () => {
         let columns = [];
         const rawData = data;
         try {
+            console.log("Backend response:", data); // Para debugging
             // El backend devuelve los documentos en data.documents
             if (data.documents && Array.isArray(data.documents)) {
                 rows = data.documents;
@@ -219,28 +221,45 @@ const QueryEditor = () => {
                     columns = Object.keys(rows[0]);
                 }
             }
-            // O si devuelve directamente un array
+            // Si es un array directo
             else if (Array.isArray(data)) {
                 rows = data;
                 if (rows.length > 0) {
                     columns = Object.keys(rows[0]);
                 }
             }
-            // O si tiene formato de resultado con count
+            // Si tiene formato de resultado con count
             else if (data.count !== undefined) {
                 rows = data.documents || [];
                 if (rows.length > 0) {
                     columns = Object.keys(rows[0]);
                 }
             }
-            // Si no hay documentos pero hay otros datos
-            else if (Object.keys(data).length > 0) {
-                rows = [data];
-                columns = Object.keys(data);
+            // Si es un objeto simple (un solo documento)
+            else if (typeof data === "object" && data !== null) {
+                // Verificar si es un documento individual
+                if (!data.error && !data.count) {
+                    rows = [data];
+                    columns = Object.keys(data);
+                }
             }
+            // Asegurarnos de que cada row sea un array para la tabla
+            const tableRows = rows.map((row) => {
+                if (Array.isArray(row)) {
+                    return row; // Ya es un array
+                }
+                else if (typeof row === "object" && row !== null) {
+                    // Convertir objeto a array de valores
+                    return columns.map((col) => row[col]);
+                }
+                else {
+                    // Si no es ni array ni objeto, devolver como array de un elemento
+                    return [row];
+                }
+            });
             setResult({
                 columns: columns,
-                rows: rows,
+                rows: tableRows, // Usar los rows procesados para la tabla
                 executionTimeMs: executionTime,
                 rowCount: rows.length,
                 rawData: rawData,

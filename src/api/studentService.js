@@ -122,14 +122,14 @@ export const mongoQueryConverter = {
             if (cleanQuery.includes(".find(")) {
                 return mongoQueryConverter.extractFindFilter(cleanQuery);
             }
-            // Para otras operaciones, devolver la consulta completa
+            // Para otras operaciones, devolver la consulta completa SIN double encoding
             else {
-                return JSON.stringify({ query: cleanQuery });
+                return cleanQuery; // ← CAMBIO PRINCIPAL: devolver el string directamente
             }
         }
         catch (error) {
             console.error("Error converting query:", error);
-            return JSON.stringify({ error: "Invalid query format" });
+            return "{}"; // ← Devolver un filtro vacío en caso de error
         }
     },
     // Extraer filtro de consultas find
