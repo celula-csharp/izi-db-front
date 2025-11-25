@@ -45,6 +45,36 @@ export const studentService = {
   getInstanceById: async (instanceId: string) => {
     return api.get(`/DatabaseInstances/${instanceId}`);
   },
+  insertDocument: async (
+    instanceId: string,
+    collectionName: string,
+    document: any,
+    databaseName?: string
+  ) => {
+    try {
+      const instanceRes = await api.get(`/DatabaseInstances/${instanceId}`);
+      const instance = instanceRes.data;
+
+      const requestBody = {
+        connectionString:
+          instance.connectionInfo?.connectionString ||
+          "mongodb+srv://tekazp:tekazp@mongodbprovider.nzfhohd.mongodb.net/",
+        databaseName: databaseName || "test",
+        collectionName: collectionName,
+        document: document,
+      };
+
+      console.log(
+        "Insert document request:",
+        JSON.stringify(requestBody, null, 2)
+      );
+
+      return api.post(`/DatabaseInstances/documents/insert`, requestBody);
+    } catch (error) {
+      console.error("Error inserting document:", error);
+      throw error;
+    }
+  },
 
   // Ejecutar una consulta en MongoDB - FORMATO CORREGIDO
   executeQuery: async (

@@ -8,6 +8,8 @@ import {
   Code,
   Database,
   Play,
+  Plus,
+  Search,
   Settings,
   Square,
 } from "lucide-react";
@@ -23,9 +25,12 @@ type QueryResult = {
   executionTimeMs?: number;
   rowCount?: number;
   rawData?: any;
+  operation?: string;
 };
 
-const defaultMongoDB = `// Ejemplos de consultas MongoDB - SOLO FILTROS
+type OperationType = "find" | "insert";
+
+const defaultFindQuery = `// Ejemplos de consultas MongoDB - FILTROS FIND
 // Consulta find con filtro básico
 { "age": { "$gte": 18 } }
 
@@ -47,12 +52,45 @@ const defaultMongoDB = `// Ejemplos de consultas MongoDB - SOLO FILTROS
 // Consulta con regex
 { "name": { "$regex": "john", "$options": "i" } }`;
 
+const defaultInsertQuery = `// Ejemplos de documentos para INSERT
+// Insertar un usuario básico
+{
+  "name": "Juan Pérez",
+  "email": "juan@example.com",
+  "age": 30,
+  "status": "active"
+}
+
+// Insertar un producto
+{
+  "name": "Laptop Gaming",
+  "price": 999.99,
+  "category": "electronics",
+  "inStock": true,
+  "tags": ["gaming", "laptop", "computers"]
+}
+
+// Insertar con campos anidados
+{
+  "user": {
+    "firstName": "María",
+    "lastName": "García",
+    "address": {
+      "street": "123 Main St",
+      "city": "Madrid",
+      "country": "Spain"
+    }
+  },
+  "preferences": ["sports", "music", "travel"]
+}`;
+
 const QueryEditor: React.FC = () => {
   const [searchParams] = useSearchParams();
   const instanceId = searchParams.get("instance") ?? undefined;
   const editorRef = useRef<any>(null);
 
-  const [code, setCode] = useState<string>(defaultMongoDB);
+  const [operation, setOperation] = useState<OperationType>("find");
+  const [code, setCode] = useState<string>(defaultFindQuery);
   const [loading, setLoading] = useState<boolean>(false);
   const [result, setResult] = useState<QueryResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -67,9 +105,9 @@ const QueryEditor: React.FC = () => {
     editorRef.current = editor;
   };
 
-  const validateQuery = (query: string): boolean => {
+  const validateQuery = (query: string, op: OperationType): boolean => {
+    console.log(op);
     try {
-      // Validar que sea JSON válido
       const cleanQuery = query
         .replace(/\/\/.*$/gm, "")
         .replace(/\/\*[\s\S]*?\*\//g, "")
@@ -80,7 +118,7 @@ const QueryEditor: React.FC = () => {
         return false;
       }
 
-      // Intentar parsear como JSON
+      // Validar que sea JSON válido
       JSON.parse(cleanQuery);
       setIsQueryValid(true);
       return true;
@@ -88,6 +126,19 @@ const QueryEditor: React.FC = () => {
       setIsQueryValid(false);
       return false;
     }
+  };
+
+  const handleOperationChange = (newOperation: OperationType) => {
+    setOperation(newOperation);
+    setCode(newOperation === "find" ? defaultFindQuery : defaultInsertQuery);
+    setResult(null);
+    setError(null);
+    setRequestInfo(null);
+    setShowRawData(false);
+    validateQuery(
+      newOperation === "find" ? defaultFindQuery : defaultInsertQuery,
+      newOperation
+    );
   };
 
   const handleRun = useCallback(async () => {
@@ -106,7 +157,7 @@ const QueryEditor: React.FC = () => {
       return;
     }
 
-    if (!validateQuery(code)) {
+    if (!validateQuery(code, operation)) {
       setError("La consulta debe ser un objeto JSON válido");
       return;
     }
@@ -114,26 +165,51 @@ const QueryEditor: React.FC = () => {
     setLoading(true);
     setError(null);
     setResult(null);
+    setRequestInfo(null);
 
     try {
+      const cleanCode = code
+        .replace(/\/\/.*$/gm, "")
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .trim();
+
+      const parsedQuery = JSON.parse(cleanCode);
+
+      // Obtener información de la instancia para el connectionString
+      const instanceRes = await studentService.getInstanceById(instanceId!);
+      const instance = instanceRes.data;
+
       // Preparar información del request para mostrar
       const requestData = {
-        connectionString: "***", // Se obtiene del servicio
+        connectionString: instance.connectionInfo?.connectionString || "***",
         databaseName: databaseSchema,
         collectionName: collectionName,
-        query: studentService.sanitizeMongoQuery(code),
+        ...(operation === "find"
+          ? { query: JSON.stringify(parsedQuery) }
+          : { document: parsedQuery }),
       };
       setRequestInfo(requestData);
 
       const startTime = performance.now();
 
-      // Usar el servicio actualizado
-      const res = await studentService.executeQuery(
-        instanceId,
-        code.trim(),
-        collectionName,
-        databaseSchema
-      );
+      let res;
+      if (operation === "find") {
+        // Ejecutar consulta FIND
+        res = await studentService.executeQuery(
+          instanceId!,
+          JSON.stringify(parsedQuery),
+          collectionName,
+          databaseSchema
+        );
+      } else {
+        // Ejecutar INSERT - usar el método insertDocument
+        res = await studentService.insertDocument(
+          instanceId!,
+          collectionName,
+          parsedQuery,
+          databaseSchema
+        );
+      }
 
       const endTime = performance.now();
       const data = res.data;
@@ -144,7 +220,20 @@ const QueryEditor: React.FC = () => {
       } else {
         const executionTime =
           data.executionTimeMs ?? Math.round(endTime - startTime);
-        processResponseData(data, executionTime);
+
+        if (operation === "find") {
+          processFindResponseData(data, executionTime);
+        } else {
+          // Para INSERT, mostrar mensaje de éxito
+          setResult({
+            columns: ["operation", "status", "message"],
+            rows: [["insert", "success", "Documento insertado correctamente"]],
+            executionTimeMs: executionTime,
+            rowCount: 1,
+            rawData: data,
+            operation: "insert",
+          });
+        }
       }
     } catch (err: any) {
       console.error("executeQuery error", err);
@@ -167,15 +256,15 @@ const QueryEditor: React.FC = () => {
           err?.response?.data?.error ??
             err?.response?.data?.message ??
             err?.message ??
-            "Error ejecutando la consulta"
+            "Error ejecutando la operación"
         );
       }
     } finally {
       setLoading(false);
     }
-  }, [code, instanceId, databaseSchema, collectionName]);
+  }, [code, instanceId, databaseSchema, collectionName, operation]);
 
-  const processResponseData = (data: any, executionTime: number) => {
+  const processFindResponseData = (data: any, executionTime: number) => {
     let rows = [];
     let columns: string[] = [];
     const rawData = data;
@@ -203,6 +292,11 @@ const QueryEditor: React.FC = () => {
           columns = Object.keys(rows[0]);
         }
       }
+      // Si no hay documentos pero hay otros datos
+      else if (Object.keys(data).length > 0) {
+        rows = [data];
+        columns = Object.keys(data);
+      }
 
       setResult({
         columns: columns,
@@ -210,6 +304,7 @@ const QueryEditor: React.FC = () => {
         executionTimeMs: executionTime,
         rowCount: rows.length,
         rawData: rawData,
+        operation: "find",
       });
     } catch (parseError) {
       console.error("Error parsing response:", parseError);
@@ -219,6 +314,7 @@ const QueryEditor: React.FC = () => {
         executionTimeMs: executionTime,
         rowCount: 0,
         rawData: data,
+        operation: "find",
       });
       setShowRawData(true);
     }
@@ -233,7 +329,7 @@ const QueryEditor: React.FC = () => {
 
   const handleCodeChange = (value: string | undefined) => {
     setCode(value ?? "");
-    validateQuery(value ?? "");
+    validateQuery(value ?? "", operation);
   };
 
   const formatCellValue = (value: any): string => {
@@ -249,7 +345,7 @@ const QueryEditor: React.FC = () => {
   };
 
   const clearEditor = () => {
-    setCode("");
+    setCode(operation === "find" ? defaultFindQuery : defaultInsertQuery);
     setResult(null);
     setError(null);
     setDetectedEntity(null);
@@ -258,7 +354,7 @@ const QueryEditor: React.FC = () => {
     setIsQueryValid(true);
   };
 
-  const queryExamples = {
+  const findExamples = {
     basic: `{ "age": { "$gte": 18 } }`,
     multiple: `{
   "status": "active",
@@ -274,9 +370,35 @@ const QueryEditor: React.FC = () => {
     empty: `{}`,
   };
 
+  const insertExamples = {
+    user: `{
+  "name": "Nuevo Usuario",
+  "email": "usuario@example.com",
+  "age": 25,
+  "status": "active"
+}`,
+    product: `{
+  "name": "Nuevo Producto",
+  "price": 49.99,
+  "category": "electronics",
+  "inStock": true
+}`,
+    nested: `{
+  "user": {
+    "firstName": "Ana",
+    "lastName": "López"
+  },
+  "preferences": ["reading", "music"]
+}`,
+  };
+
   const insertExample = (example: string) => {
     setCode(example);
-    validateQuery(example);
+    validateQuery(example, operation);
+  };
+
+  const getOperationColor = (op: OperationType) => {
+    return operation === op ? "bg-green-600" : "bg-gray-700 hover:bg-gray-600";
   };
 
   return (
@@ -289,7 +411,7 @@ const QueryEditor: React.FC = () => {
             MongoDB Query Editor
           </h1>
           <p className="text-gray-400 mt-1">
-            Ejecuta consultas MongoDB en tu instancia
+            Ejecuta consultas y operaciones en tu instancia
             {instanceId ? ` #${instanceId}` : ""}
           </p>
         </div>
@@ -340,14 +462,17 @@ const QueryEditor: React.FC = () => {
             </button>
           )}
 
-          {result?.columns && result.rows && result.rows.length > 0 && (
-            <ExportButtons
-              columns={result.columns}
-              rows={result.rows}
-              entityName={collectionName || "query_result"}
-              advanced={false}
-            />
-          )}
+          {result?.columns &&
+            result.rows &&
+            result.rows.length > 0 &&
+            result.operation === "find" && (
+              <ExportButtons
+                columns={result.columns}
+                rows={result.rows}
+                entityName={collectionName || "query_result"}
+                advanced={false}
+              />
+            )}
 
           <button
             onClick={handleRun}
@@ -363,14 +488,43 @@ const QueryEditor: React.FC = () => {
             {loading ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Ejecutando...
+                {operation === "find" ? "Buscando..." : "Insertando..."}
               </>
             ) : (
               <>
                 <Play className="w-4 h-4" />
-                Ejecutar (Ctrl+Enter)
+                {operation === "find"
+                  ? "Ejecutar (Ctrl+Enter)"
+                  : "Insertar (Ctrl+Enter)"}
               </>
             )}
+          </button>
+        </div>
+      </div>
+
+      {/* Selector de Operación */}
+      <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+        <h3 className="text-sm font-medium text-gray-300 mb-3">
+          Tipo de Operación
+        </h3>
+        <div className="flex gap-2">
+          <button
+            onClick={() => handleOperationChange("find")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors duration-200 ${getOperationColor(
+              "find"
+            )} text-white`}
+          >
+            <Search className="w-4 h-4" />
+            Buscar (FIND)
+          </button>
+          <button
+            onClick={() => handleOperationChange("insert")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors duration-200 ${getOperationColor(
+              "insert"
+            )} text-white`}
+          >
+            <Plus className="w-4 h-4" />
+            Insertar (INSERT)
           </button>
         </div>
       </div>
@@ -391,48 +545,79 @@ const QueryEditor: React.FC = () => {
           )}
           <span>
             {isQueryValid
-              ? "Consulta válida - JSON correcto"
-              : "Consulta no válida - Debe ser un objeto JSON"}
+              ? `Consulta válida - ${
+                  operation === "find"
+                    ? "Filtro JSON correcto"
+                    : "Documento JSON correcto"
+                }`
+              : `Consulta no válida - Debe ser un objeto JSON`}
           </span>
         </div>
       </div>
 
-      {/* Ejemplos de Filtros */}
+      {/* Ejemplos según la operación */}
       <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
         <h3 className="text-sm font-medium text-gray-300 mb-3">
-          Ejemplos de Filtros JSON
+          {operation === "find"
+            ? "Ejemplos de Filtros JSON"
+            : "Ejemplos de Documentos para INSERT"}
         </h3>
         <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => insertExample(queryExamples.basic)}
-            className="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded text-sm transition-colors"
-          >
-            Básico
-          </button>
-          <button
-            onClick={() => insertExample(queryExamples.multiple)}
-            className="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded text-sm transition-colors"
-          >
-            Múltiple
-          </button>
-          <button
-            onClick={() => insertExample(queryExamples.logical)}
-            className="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded text-sm transition-colors"
-          >
-            Lógico
-          </button>
-          <button
-            onClick={() => insertExample(queryExamples.regex)}
-            className="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded text-sm transition-colors"
-          >
-            Regex
-          </button>
-          <button
-            onClick={() => insertExample(queryExamples.empty)}
-            className="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded text-sm transition-colors"
-          >
-            Todos
-          </button>
+          {operation === "find" ? (
+            <>
+              <button
+                onClick={() => insertExample(findExamples.basic)}
+                className="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded text-sm transition-colors"
+              >
+                Básico
+              </button>
+              <button
+                onClick={() => insertExample(findExamples.multiple)}
+                className="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded text-sm transition-colors"
+              >
+                Múltiple
+              </button>
+              <button
+                onClick={() => insertExample(findExamples.logical)}
+                className="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded text-sm transition-colors"
+              >
+                Lógico
+              </button>
+              <button
+                onClick={() => insertExample(findExamples.regex)}
+                className="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded text-sm transition-colors"
+              >
+                Regex
+              </button>
+              <button
+                onClick={() => insertExample(findExamples.empty)}
+                className="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded text-sm transition-colors"
+              >
+                Todos
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => insertExample(insertExamples.user)}
+                className="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded text-sm transition-colors"
+              >
+                Usuario
+              </button>
+              <button
+                onClick={() => insertExample(insertExamples.product)}
+                className="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded text-sm transition-colors"
+              >
+                Producto
+              </button>
+              <button
+                onClick={() => insertExample(insertExamples.nested)}
+                className="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded text-sm transition-colors"
+              >
+                Anidado
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -442,18 +627,22 @@ const QueryEditor: React.FC = () => {
           <Code className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
           <div>
             <h4 className="text-blue-300 font-medium mb-1">
-              Formato Requerido
+              {operation === "find"
+                ? "Formato para FIND"
+                : "Formato para INSERT"}
             </h4>
             <p className="text-blue-200 text-sm">
-              El backend espera un <strong>filtro JSON</strong> para consultas
-              find. Ejemplo:{" "}
-              <code className="bg-blue-900/50 px-1">
-                {'{ "age": { "$gte": 18 } }'}
-              </code>
+              {operation === "find"
+                ? "El backend espera un filtro JSON para consultas find."
+                : "El backend espera un documento JSON completo para insertar."}
             </p>
             <p className="text-blue-200 text-sm mt-1">
-              No uses consultas MongoDB completas como{" "}
-              <code className="bg-blue-900/50 px-1">db.users.find()</code>
+              {operation === "find" ? "Ejemplo: " : "Ejemplo: "}
+              <code className="bg-blue-900/50 px-1">
+                {operation === "find"
+                  ? '{ "age": { "$gte": 18 } }'
+                  : '{ "name": "Juan", "age": 30 }'}
+              </code>
             </p>
           </div>
         </div>
@@ -464,7 +653,7 @@ const QueryEditor: React.FC = () => {
         <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
           <h4 className="text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
             <Code className="w-4 h-4" />
-            Request Enviado
+            Request Enviado ({operation.toUpperCase()})
           </h4>
           <pre className="text-sm text-gray-300 bg-gray-750 p-3 rounded overflow-auto max-h-32">
             {JSON.stringify(requestInfo, null, 2)}
@@ -478,7 +667,9 @@ const QueryEditor: React.FC = () => {
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-white flex items-center gap-2">
               <Square className="w-4 h-4 text-green-400" />
-              Editor de Filtros JSON
+              {operation === "find"
+                ? "Editor de Filtros JSON"
+                : "Editor de Documentos JSON"}
             </h3>
             <div className="text-sm text-gray-400">
               {code.split("\n").length} líneas
@@ -528,7 +719,9 @@ const QueryEditor: React.FC = () => {
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-white flex items-center gap-2">
               <Play className="w-4 h-4 text-green-400" />
-              Resultados
+              {operation === "find"
+                ? "Resultados"
+                : "Resultado de la Operación"}
             </h3>
 
             {result && (
@@ -539,12 +732,14 @@ const QueryEditor: React.FC = () => {
                     {result.executionTimeMs}ms
                   </span>
                 )}
-                {result.rowCount !== undefined && result.rows && (
-                  <span>
-                    {result.rowCount} documento
-                    {result.rowCount !== 1 ? "s" : ""}
-                  </span>
-                )}
+                {result.rowCount !== undefined &&
+                  result.rows &&
+                  operation === "find" && (
+                    <span>
+                      {result.rowCount} documento
+                      {result.rowCount !== 1 ? "s" : ""}
+                    </span>
+                  )}
               </div>
             )}
           </div>
@@ -563,7 +758,11 @@ const QueryEditor: React.FC = () => {
               <div className="flex-1 flex items-center justify-center text-gray-500">
                 <div className="text-center">
                   <Play className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>Ejecuta una consulta para ver los resultados</p>
+                  <p>
+                    {operation === "find"
+                      ? "Ejecuta una consulta para ver los resultados"
+                      : "Inserta un documento para ver el resultado"}
+                  </p>
                   <p className="text-sm mt-1">
                     Usa Ctrl+Enter para ejecutar rápidamente
                   </p>
@@ -622,7 +821,9 @@ const QueryEditor: React.FC = () => {
                               colSpan={result.columns.length}
                               className="px-4 py-8 text-center text-gray-500"
                             >
-                              No se encontraron documentos
+                              {operation === "find"
+                                ? "No se encontraron documentos"
+                                : "No hay resultados para mostrar"}
                             </td>
                           </tr>
                         )}
@@ -647,8 +848,9 @@ const QueryEditor: React.FC = () => {
               )}
           </div>
 
-          {/* Instance Info Panel */}
-          {detectedEntity &&
+          {/* Instance Info Panel - Solo para FIND */}
+          {operation === "find" &&
+            detectedEntity &&
             result?.rows &&
             result.rows.length > 0 &&
             !showRawData && (
