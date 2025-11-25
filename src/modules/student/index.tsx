@@ -57,12 +57,15 @@ const StudentIndex: FC = () => {
                     {/* ------------------------------------------------ */}
 
                     <button
-                        onClick={() => navigate("/student/dashboard")}
+                        onClick={() => navigate("/dashboard/student/dashboard")}
                         className="px-4 py-2 bg-sky-600 rounded text-white"
                     >
                         Ir a Dashboard
                     </button>
-                    <Link to="/student/query" className="px-4 py-2 bg-gray-700 rounded text-white">
+                    <Link
+                        to="/dashboard/student/query"
+                        className="px-4 py-2 bg-gray-700 rounded text-white"
+                    >
                         Abrir Query Editor
                     </Link>
                 </div>
@@ -96,19 +99,19 @@ const StudentIndex: FC = () => {
 
                                     <div className="mt-2 flex gap-2">
                                         <button
-                                            onClick={() => navigate(`/student/${it.id}/data`)}
+                                            onClick={() => navigate(`/dashboard/student/${it.id}/data`)}
                                             className="text-xs px-2 py-1 rounded bg-gray-800"
                                         >
                                             Data
                                         </button>
                                         <button
-                                            onClick={() => navigate(`/student/query?instance=${it.id}`)}
+                                            onClick={() => navigate(`/dashboard/student/query?instance=${it.id}`)}
                                             className="text-xs px-2 py-1 rounded bg-gray-800"
                                         >
                                             Query
                                         </button>
                                         <button
-                                            onClick={() => navigate(`/student/${it.id}/logs`)}
+                                            onClick={() => navigate(`/dashboard/student/${it.id}/logs`)}
                                             className="text-xs px-2 py-1 rounded bg-gray-800"
                                         >
                                             Logs

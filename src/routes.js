@@ -1,5 +1,5 @@
 import { jsx as _jsx } from "react/jsx-runtime";
-import { createBrowserRouter, redirect } from "react-router";
+import { createBrowserRouter, redirect, Navigate } from "react-router";
 import StudentDashboard from "./modules/student/dashboard";
 import StudentIndex from "./modules/student/index";
 import StudentLayout from "./modules/student/layout";
@@ -48,9 +48,13 @@ const Routes = createBrowserRouter([
         ],
     },
     {
-        path: "",
+        path: "", // Ruta de Nivel Raíz para usuarios autenticados
         element: _jsx(ProtectedRoute, {}),
         children: [
+            {
+                index: true,
+                loader: () => redirect("/dashboard"),
+            },
             {
                 path: "dashboard",
                 element: _jsx(MainLayout, {}),
@@ -72,8 +76,13 @@ const Routes = createBrowserRouter([
                             {
                                 element: _jsx(StudentLayout, {}),
                                 children: [
+                                    // ✅ REDIRECCIÓN DE INDEX (Fuerza a 'dashboard' para /dashboard/student)
                                     {
                                         index: true,
+                                        element: _jsx(Navigate, { to: "dashboard", replace: true }),
+                                    },
+                                    {
+                                        path: "index",
                                         element: _jsx(StudentIndex, {}),
                                     },
                                     {

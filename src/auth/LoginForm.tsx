@@ -4,6 +4,7 @@ import { loginSchema } from '@/schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import {useAuth} from "@/auth/useAuth";
 import { useNavigate } from 'react-router';
 
 export interface LoginFormValues {
@@ -13,6 +14,7 @@ export interface LoginFormValues {
 
 export const LoginForm = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [showPass, setShowPass] = React.useState<boolean>(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -24,10 +26,14 @@ export const LoginForm = () => {
     resolver: zodResolver(loginSchema),
   })
 
-  const onSubmit = (data: LoginFormValues) => {
+  const onSubmit = async (data: LoginFormValues) => {
     setSubmitting(true);
+    
+    
     try {
       console.log(data);
+      await login(data);
+
       navigate("/dashboard/student")
     } catch (error: unknown) {
       if (error instanceof Error) {

@@ -5,18 +5,21 @@ import { loginSchema } from '@/schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useAuth } from "@/auth/useAuth";
 import { useNavigate } from 'react-router';
 export const LoginForm = () => {
     const navigate = useNavigate();
+    const { login } = useAuth();
     const [showPass, setShowPass] = React.useState(false);
     const [submitting, setSubmitting] = useState(false);
     const { register, handleSubmit, formState: { errors } } = useForm({
         resolver: zodResolver(loginSchema),
     });
-    const onSubmit = (data) => {
+    const onSubmit = async (data) => {
         setSubmitting(true);
         try {
             console.log(data);
+            await login(data);
             navigate("/dashboard/student");
         }
         catch (error) {

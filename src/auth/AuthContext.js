@@ -39,12 +39,13 @@ export const AuthProvider = ({ children }) => {
         void bootstrap();
     }, []);
     const login = useCallback(async (payload) => {
-        const { accessToken, user } = await authApi.login(payload);
-        localStorage.setItem('izi-db_token', accessToken);
+        const { token, user } = await authApi.login(payload);
+        console.log(token);
+        localStorage.setItem('izi-db_token', token);
         localStorage.setItem('izi-db_user', JSON.stringify(user));
         setState({
             user,
-            token: accessToken,
+            token: token,
             isLoading: false
         });
     }, []);

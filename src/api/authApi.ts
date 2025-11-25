@@ -7,18 +7,19 @@ export interface LoginPayload {
 }
 
 export interface LoginResponse {
-  accessToken: string;
+  token: string;
+  expiration: Date;
   user: User;
 }
 
 export const authApi = {
   async login(payload: LoginPayload): Promise<LoginResponse> {
-    const { data } = await axiosClient.post<LoginResponse>('/auth/login', payload);
+    const { data } = await axiosClient.post<LoginResponse>('/Users/login', payload);
     return data;
   },
 
   async getCurrentUser(): Promise<User> {
-    const { data } = await axiosClient.get<User>('/auth/me');
+    const { data } = await axiosClient.get<User>("/Users/me");
     return data;
   }
 };

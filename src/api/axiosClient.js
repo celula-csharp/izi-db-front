@@ -13,8 +13,8 @@ axiosClient.interceptors.response.use((response) => response, (error) => {
     if (error?.response?.status === 401) {
         localStorage.removeItem('izi-db_token');
         localStorage.removeItem('izi-db_user');
-        if (window.location.pathname !== '/login') {
-            window.location.href = '/login';
+        if (window.location.pathname !== '/auth/login') {
+            window.location.href = '/auth/login';
         }
     }
     return Promise.reject(error);
