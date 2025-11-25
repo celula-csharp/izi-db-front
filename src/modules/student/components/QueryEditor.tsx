@@ -435,20 +435,6 @@ const QueryEditor: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap gap-3">
-          {/* Selector de Database */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-400">Database:</label>
-            <select
-              value={databaseSchema}
-              onChange={(e) => setDatabaseSchema(e.target.value)}
-              className="bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm text-white"
-            >
-              <option value="test">test</option>
-              <option value="admin">admin</option>
-              <option value="local">local</option>
-            </select>
-          </div>
-
           {/* Input de Collection Name */}
           <div className="flex items-center gap-2">
             <label className="text-sm text-gray-400">Collection:</label>
